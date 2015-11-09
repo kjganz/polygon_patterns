@@ -8,6 +8,7 @@ window.onload = function() {
   var maxDepth = 3;
   var lineWidth = 1;
   var offset = 0.5;
+  var redraw = false;
 
   var init = function() {
     c = document.getElementById("canvas");
@@ -31,7 +32,7 @@ window.onload = function() {
     ctx.lineWidth = lineWidth;
     ctx.stroke();
 
-    if (verticesChanged == true) {
+    if (verticesChanged === true) {
       calculateVertices();
       verticesChanged = false;
     }
@@ -52,7 +53,7 @@ window.onload = function() {
       
       var newV = [];
       for (var i = 0; i < v.length; i++) {
-        newV.push( {x: (v[i].x * (1 - offset)) + (v[index(i+1)].x * offset), 
+        newV.push( {x: (v[i].x * (1 - offset)) + (v[index(i+1)].x * offset),
                     y: (v[i].y * (1 - offset)) + (v[index(i+1)].y * offset)});
     
         // if ((i % 2 === 0) && ((depth < 3) || (depth % 2 === 0))) {
@@ -67,7 +68,7 @@ window.onload = function() {
         ctx.beginPath();
         ctx.moveTo(newV[i].x, newV[i].y);
         ctx.lineTo(v[index(i+1)].x, v[index(i+1)].y);
-        ctx.lineTo((v[index(i+1)].x * (1-offset)) + (v[index(i+2)].x * offset), 
+        ctx.lineTo((v[index(i+1)].x * (1-offset)) + (v[index(i+2)].x * offset),
                    (v[index(i+1)].y * (1-offset)) + (v[index(i+2)].y * offset));
         ctx.closePath();
         ctx.lineWidth = lineWidth;
@@ -124,12 +125,13 @@ window.onload = function() {
 
   var fetchParams = function() {
     // params = ['num-vert', 'depth', 'line-width', 'offset'];
+    redraw = false;
     var params = [];
     $('[id]').each(function() {
       params.push($(this).attr("id"));
     });
     for (var i = 0; i < params.length; i++) {
-      updateParam( params[i], parseFloat($('#' + params[i]).val()) );
+      updateParam( params[i], Number($('#' + params[i]).val()) );
     }
   };
 
@@ -137,25 +139,25 @@ window.onload = function() {
     switch (param) {
       case 'num-vert':
         if (value < 3) { value = 3; }
-        if (value != numVertices) { 
+        if (value != numVertices) {
           verticesChanged = true;
           numVertices = value;
         }
         break;
 
       case 'depth':
-        if (value < 0) { value = 0 }
+        if (value < 0) { value = 0; }
         maxDepth = value;
         break;
 
       case 'line-width':
-        if (value < 1) { value = 1 }
+        if (value < 1) { value = 1; }
         lineWidth = value;
         break;
 
       case 'offset':
-        if (value < 0) { value = 0 }
-        if (value > 1) { value = 1 }
+        if (value < 0) { value = 0; }
+        if (value > 1) { value = 1; }
         offset = value;
         break;
 
@@ -164,21 +166,22 @@ window.onload = function() {
     }
 
     $('#' + param).val(value);
+    if (redraw === true) {
+      draw();
+    }
   };
 
   $('.decrement').click(function(e) {
     param = $(this).attr('param');
-    value = parseFloat($('#' + param).val()) - parseFloat($('#' + param).attr('step'));
-    console.log('value: ' + parseFloat($('#' + param).val()));
-    console.log('step: ' + parseFloat($('#' + param).attr('step')));
+    value = Number($('#' + param).val()) - Number($('#' + param).attr('step'));
+    redraw = true;
     updateParam(param, value);
   });
 
   $('.increment').click(function(e) {
     param = $(this).attr('param');
-    value = parseFloat($('#' + param).val()) + parseFloat($('#' + param).attr('step'));
-    console.log('value: ' + parseFloat($('#' + param).val()));
-    console.log('step: ' + parseFloat($('#' + param).attr('step')));
+    value = Number($('#' + param).val()) + Number($('#' + param).attr('step'));
+    redraw = true;
     updateParam(param, value);
   });
 
@@ -187,4 +190,4 @@ window.onload = function() {
   });
 
   init();
-}
+};
