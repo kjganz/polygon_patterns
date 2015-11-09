@@ -7,6 +7,7 @@ window.onload = function() {
   var verticesChanged = true;
   var maxDepth = 3;
   var lineWidth = 1;
+  var offset = 0.5;
 
   var init = function() {
     c = document.getElementById("canvas");
@@ -51,8 +52,8 @@ window.onload = function() {
       
       var newV = [];
       for (var i = 0; i < v.length; i++) {
-        newV.push( {x: (v[i].x + v[index(i+1)].x) / 2, 
-                    y: (v[i].y + v[index(i+1)].y) / 2});
+        newV.push( {x: (v[i].x * (1 - offset)) + (v[index(i+1)].x * offset), 
+                    y: (v[i].y * (1 - offset)) + (v[index(i+1)].y * offset)});
     
         // if ((i % 2 === 0) && ((depth < 3) || (depth % 2 === 0))) {
         // beginShape();
@@ -66,8 +67,8 @@ window.onload = function() {
         ctx.beginPath();
         ctx.moveTo(newV[i].x, newV[i].y);
         ctx.lineTo(v[index(i+1)].x, v[index(i+1)].y);
-        ctx.lineTo((v[index(i+1)].x + v[index(i+2)].x) / 2, 
-                   (v[index(i+1)].y + v[index(i+2)].y) / 2);
+        ctx.lineTo((v[index(i+1)].x * (1-offset)) + (v[index(i+2)].x * offset), 
+                   (v[index(i+1)].y * (1-offset)) + (v[index(i+2)].y * offset));
         ctx.closePath();
         ctx.lineWidth = lineWidth;
         ctx.stroke();
@@ -122,7 +123,11 @@ window.onload = function() {
   };
 
   var fetchParams = function() {
-    params = ['num-vert', 'depth', 'line-width'];
+    // params = ['num-vert', 'depth', 'line-width', 'offset'];
+    var params = [];
+    $('[id]').each(function() {
+      params.push($(this).attr("id"));
+    });
     for (var i = 0; i < params.length; i++) {
       updateParam( params[i], parseFloat($('#' + params[i]).val()) );
     }
@@ -147,20 +152,34 @@ window.onload = function() {
         if (value < 1) { value = 1 }
         lineWidth = value;
         break;
+
+      case 'offset':
+        if (value < 0) { value = 0 }
+        if (value > 1) { value = 1 }
+        offset = value;
+        break;
+
+      default:
+        return;
     }
 
     $('#' + param).val(value);
   };
 
-  $('.increment').click(function(e) {
-    param = $(this).attr('param');
-    // updateParam(param, parseFloat(document.getElementById(param).value) + 1);
-    updateParam(param, parseFloat($('#' + param).val()) + 1);
-  });
-
   $('.decrement').click(function(e) {
     param = $(this).attr('param');
-    updateParam(param, parseFloat($('#' + param).val()) - 1);
+    value = parseFloat($('#' + param).val()) - parseFloat($('#' + param).attr('step'));
+    console.log('value: ' + parseFloat($('#' + param).val()));
+    console.log('step: ' + parseFloat($('#' + param).attr('step')));
+    updateParam(param, value);
+  });
+
+  $('.increment').click(function(e) {
+    param = $(this).attr('param');
+    value = parseFloat($('#' + param).val()) + parseFloat($('#' + param).attr('step'));
+    console.log('value: ' + parseFloat($('#' + param).val()));
+    console.log('step: ' + parseFloat($('#' + param).attr('step')));
+    updateParam(param, value);
   });
 
   $('#draw').click(function() {
