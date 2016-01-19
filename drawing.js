@@ -14,6 +14,7 @@ window.onload = function() {
   var color = ['#000000'];
   var ctx;
   var skipDepth = 0;
+  var skipDepthCount = 1;
   var skipSide = 0;
 
   var init = function() {
@@ -53,12 +54,25 @@ window.onload = function() {
     }
   };
 
+  var shouldDrawLevel = function(depth) {
+    if (depth % skipDepth === 0) {
+      return false;
+    }
+
+    if (depth % skipDepth < skipDepthCount) {
+    // if (depth > skipDepth && depth % skipDepth < skipDepthCount) {
+      return false;
+    }
+
+    return true;
+  };
+
   var drawPattern = function(v, depth, maxDepth) {
     
     if (depth <= maxDepth) {
       
       var newV = [];
-      var drawLevel = depth % skipDepth !== 0 ? true : false;
+      var drawLevel = shouldDrawLevel(depth);
       for (var i = 0; i < v.length; i++) {
         newV.push( {x: (v[i].x * (1 - offset)) + (v[index(i+1)].x * offset),
                     y: (v[i].y * (1 - offset)) + (v[index(i+1)].y * offset)});
@@ -90,35 +104,9 @@ window.onload = function() {
           }
         }
       }
+      
       drawPattern(newV, depth + 1, maxDepth);
-    } else {
-      // beginShape();
-      // for (var i = 0; i < v.length; i++) {
-      //   vertex(v[i].x, v[i].y);
-      // }
-      // endShape(CLOSE);
     }
-    
-    // if (depth % 2 == 0) {
-    //   fill(0, 0, 0);
-    // } else {
-    //   fill(255, 255, 255);
-    // }
-    
-    // var newVertices = [];
-    // for (var i = 0; i < vertices.length; i++) {
-    //   newVertices.push({x: (vertices[i].x + vertices[index(i+1)].x) / 2, 
-    //                     y: (vertices[i].y + vertices[index(i+1)].y) / 2});
-
-    //   if ((i % 2 === 0) && ((depth < 3) || (depth % 2 === 0))) {
-    //     beginShape();
-    //     vertex(newVertices[i].x, newVertices[i].y);
-    //     vertex(vertices[index(i+1)].x, vertices[index(i+1)].y);
-    //     vertex((vertices[index(i+1)].x + vertices[index(i+2)].x) / 2, 
-    //           (vertices[index(i+1)].y + vertices[index(i+2)].y) / 2);
-    //     endShape(CLOSE);
-    //   }
-    // }
   };
 
   var index = function(num) {
@@ -170,6 +158,12 @@ window.onload = function() {
       case 'skip-depth':
         if (value < 0) { value = 0; }
         skipDepth = value;
+        break;
+
+      case 'skip-depth-count':
+        if (value >= skipDepth) { value = skipDepth - 1; }
+        if (value < 1) { value = 1; }
+        skipDepthCount = value;
         break;
 
       case 'skip-side':
