@@ -18,7 +18,7 @@
     <div class='params-btn-block'>
       <h2> Number of Sides </h2>
       <button class='decrement' param='num-vert'> - </button>
-      <input id='num-vert' type="number" min='3' value='5' step='1'>
+      <input id='num-vert' type="number" min='3' value='6' step='1'>
       <button class='increment' param='num-vert'> + </button>
     </div>
 
@@ -41,6 +41,30 @@
       <button class='decrement' param='offset'> - </button>
       <input id='offset' type="number" min='0' max='1' value='0.5' step='0.05'>
       <button class='increment' param='offset'> + </button>
+    </div>
+
+    <div class='params-btn-block'>
+      <h2> Skip Every N Layer </h2>
+      <button class='decrement' param='skip-depth'> - </button>
+      <input id='skip-depth' type="number" min='0' value='0' step='1'>
+      <button class='increment' param='skip-depth'> + </button>
+    </div>
+
+    <div class='params-btn-block'>
+      <h2> Skip Every N Side </h2>
+      <button class='decrement' param='skip-side'> - </button>
+      <input id='skip-side' type="number" min='0' value='0' step='1'>
+      <button class='increment' param='skip-side'> + </button>
+    </div>
+
+    <div class='params-btn-block'>
+      <h2> Lines or Triangles? </h2>
+      <button class='cycle' id='line-or-triangle'> Triangles </button>
+    </div>
+
+    <div class='params-btn-block'>
+      <h2> Fill With Color? </h2>
+      <button class='cycle' id='fill'> No Fill </button>
     </div>
 
     <button id='draw'> Draw </button>

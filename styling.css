@@ -7,8 +7,8 @@ html, body {
 }
 
 #canvas {
-  height: 95vh;
   margin: 2.4% 2%;
+  height: 95vh;
   background: #ddd;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
@@ -33,7 +33,7 @@ html, body {
 }
 
 input[type='number'] {
-    -moz-appearance:textfield;
+  -moz-appearance: textfield; 
 }
 
 input[type=number]::-webkit-inner-spin-button, 

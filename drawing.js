@@ -9,9 +9,16 @@ window.onload = function() {
   var lineWidth = 1;
   var offset = 0.5;
   var redraw = false;
+  var drawAsLines = false;
+  var fillWithColor = false;
+  var color = ['#000000'];
+  var ctx;
+  var skipDepth = 0;
+  var skipSide = 0;
 
   var init = function() {
     c = document.getElementById("canvas");
+    ctx = c.getContext('2d');
     setCanvasSize();
     draw();
   };
@@ -25,7 +32,6 @@ window.onload = function() {
   var draw = function() {
     fetchParams();
     // Draw the circumscribed circle
-    var ctx=c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.beginPath();
     ctx.arc(canvasSize/2, canvasSize/2, 0.9 * canvasSize/2, 0, 2*Math.PI);
@@ -36,7 +42,7 @@ window.onload = function() {
       calculateVertices();
       verticesChanged = false;
     }
-    drawPattern(polygon, 0, maxDepth);
+    drawPattern(polygon, 1, maxDepth);
   };
 
   var calculateVertices = function() {
@@ -49,31 +55,40 @@ window.onload = function() {
 
   var drawPattern = function(v, depth, maxDepth) {
     
-    if (depth < maxDepth) {
+    if (depth <= maxDepth) {
       
       var newV = [];
+      var drawLevel = depth % skipDepth !== 0 ? true : false;
       for (var i = 0; i < v.length; i++) {
         newV.push( {x: (v[i].x * (1 - offset)) + (v[index(i+1)].x * offset),
                     y: (v[i].y * (1 - offset)) + (v[index(i+1)].y * offset)});
     
-        // if ((i % 2 === 0) && ((depth < 3) || (depth % 2 === 0))) {
-        // beginShape();
-        // vertex(newV[i].x, newV[i].y);
-        // vertex(v[index(i+1)].x, v[index(i+1)].y);
-        // vertex((v[index(i+1)].x + v[index(i+2)].x) / 2, 
-        //       (v[index(i+1)].y + v[index(i+2)].y) / 2);
-        // endShape(CLOSE);
+        var drawSide = i % skipSide !== 0 ? true : false;
+        if (drawLevel && drawSide) {
 
-        var ctx = c.getContext('2d');
-        ctx.beginPath();
-        ctx.moveTo(newV[i].x, newV[i].y);
-        ctx.lineTo(v[index(i+1)].x, v[index(i+1)].y);
-        ctx.lineTo((v[index(i+1)].x * (1-offset)) + (v[index(i+2)].x * offset),
-                   (v[index(i+1)].y * (1-offset)) + (v[index(i+2)].y * offset));
-        ctx.closePath();
-        ctx.lineWidth = lineWidth;
-        ctx.stroke();
-        // }
+          if (drawAsLines) {
+            ctx.beginPath();
+            ctx.moveTo(v[i].x, v[i].y);
+            ctx.lineTo(v[index(i+1)].x, v[index(i+1)].y);
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(newV[i].x, newV[i].y);
+            ctx.lineTo(v[index(i+1)].x, v[index(i+1)].y);
+            ctx.lineTo((v[index(i+1)].x * (1-offset)) + (v[index(i+2)].x * offset),
+                       (v[index(i+1)].y * (1-offset)) + (v[index(i+2)].y * offset));
+            ctx.closePath();
+            if (fillWithColor) {
+              ctx.lineWidth = 0;
+              ctx.fillStyle = color[0];
+              ctx.fill();
+            } else {
+              ctx.lineWidth = lineWidth;
+              ctx.stroke();
+            }
+          }
+        }
       }
       drawPattern(newV, depth + 1, maxDepth);
     } else {
@@ -83,15 +98,6 @@ window.onload = function() {
       // }
       // endShape(CLOSE);
     }
-
-    // if (depth >= maxDepth) {
-    //   beginShape();
-    //   for (var i = 0; i < vertices.length; i++) {
-    //     vertex(vertices[i].x, vertices[i].y);
-    //   }
-    //   endShape(CLOSE);
-    //   return;
-    // }
     
     // if (depth % 2 == 0) {
     //   fill(0, 0, 0);
@@ -161,6 +167,16 @@ window.onload = function() {
         offset = value;
         break;
 
+      case 'skip-depth':
+        if (value < 0) { value = 0; }
+        skipDepth = value;
+        break;
+
+      case 'skip-side':
+        if (value < 0) { value = 0; }
+        skipSide = value;
+        break;
+
       default:
         return;
     }
@@ -171,23 +187,61 @@ window.onload = function() {
     }
   };
 
-  $('.decrement').click(function(e) {
+  var cycleParam = function(param) {
+    switch (param) {
+      case 'line-or-triangle':
+        drawAsLines = drawAsLines ? false : true;
+        value = drawAsLines ? 'Lines' : 'Triangles';
+        break;
+
+      case 'fill':
+        fillWithColor = fillWithColor ? false : true;
+        value = fillWithColor? 'Fill' : 'No Fill';
+        break;
+
+      default:
+        return;
+    }
+
+    $('#' + param).html(value);
+    draw();
+  };
+
+  $('.decrement').click(function() {
     param = $(this).attr('param');
     value = Number($('#' + param).val()) - Number($('#' + param).attr('step'));
     redraw = true;
     updateParam(param, value);
   });
 
-  $('.increment').click(function(e) {
+  $('.increment').click(function() {
     param = $(this).attr('param');
     value = Number($('#' + param).val()) + Number($('#' + param).attr('step'));
     redraw = true;
     updateParam(param, value);
   });
 
+  $('.cycle').click(function() {
+    cycleParam($(this).attr('id'));
+  });
+
   $('#draw').click(function() {
     draw();
   });
+
+  // http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+  function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+  }
 
   init();
 };
